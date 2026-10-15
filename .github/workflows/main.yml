@@ -1,0 +1,27 @@
+name: build
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm i -g @neutralinojs/neu && npm i --no-save resedit
+      - run: pip install pillow && python3 tools/make-icon.py
+      - run: neu update && neu build
+      - run: |
+          mkdir Inkling
+          node tools/patch-exe.js dist/Inkling/Inkling-win_x64.exe Inkling/Inkling.exe
+          cp dist/Inkling/resources.neu Inkling/
+          zip -9 -r Inkling-win_x64.zip Inkling
+      - uses: actions/upload-artifact@v4
+        with: { name: Inkling-win_x64, path: Inkling-win_x64.zip }
+      - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with: { files: Inkling-win_x64.zip }
