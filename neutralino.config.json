@@ -1,0 +1,41 @@
+{
+  "applicationId": "com.inkling.app",
+  "version": "3.0.0",
+  "defaultMode": "window",
+  "port": 0,
+  "documentRoot": "/resources/",
+  "url": "/",
+  "enableServer": true,
+  "enableNativeAPI": true,
+  "tokenSecurity": "one-time",
+  "logging": {
+    "enabled": false
+  },
+  "nativeAllowList": [
+    "app.*",
+    "os.*",
+    "filesystem.*",
+    "window.*"
+  ],
+  "modes": {
+    "window": {
+      "title": " ",
+      "width": 1100,
+      "height": 720,
+      "minWidth": 700,
+      "minHeight": 480,
+      "center": true,
+      "icon": "/resources/icons/appIcon.png",
+      "enableInspector": false,
+      "exitProcessOnClose": false
+    }
+  },
+  "cli": {
+    "binaryName": "Inkling",
+    "resourcesPath": "/resources/",
+    "extensionsPath": "/extensions/",
+    "clientLibrary": "/resources/js/neutralino.js",
+    "binaryVersion": "nightly",
+    "clientVersion": "nightly"
+  }
+}

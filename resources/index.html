@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8">
+<meta name="color-scheme" content="light dark">
+<title> </title>
+<style>
+:root{--bg:#fff;--fg:#2c3338;--mute:#6b7280;--line:#e5e7eb;--sel:#cfdbf3;--acc:#3361cc;--hov:#f3f5f9;--chip:#e8eefb;--ic:#555;--sh:rgba(0,0,0,.2)}
+[data-theme=dark]{--bg:#1b1d21;--fg:#e4e6ea;--mute:#9aa1ab;--line:#2e3238;--sel:#2c3c5e;--acc:#7aa2ff;--hov:#25282d;--chip:#2a3550;--ic:#b4bac4;--sh:rgba(0,0,0,.6);color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font:16px/1.5 "Microsoft YaHei UI","Segoe UI",sans-serif;color:var(--fg);background:var(--bg)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:6px;border-radius:6px;display:flex;align-items:center;justify-content:center}
+button:hover{background:var(--hov)} button:focus-visible,input:focus-visible{outline:2px solid var(--acc)}
+input,textarea{background:var(--bg);color:var(--fg)}
+svg{width:22px;height:22px;stroke:var(--ic);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.hide{display:none!important}
+#lock{position:fixed;inset:0;background:var(--bg);z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px}
+#lock h1{font-size:22px;margin:0;font-weight:600}#lock p{margin:0;color:var(--mute);min-height:24px}
+.dots{display:flex;gap:16px}.dots i{width:16px;height:16px;border-radius:50%;border:2px solid var(--acc)}.dots i.on{background:var(--acc)}
+.pad{display:grid;grid-template-columns:repeat(3,64px);gap:12px}
+.pad button{height:64px;font-size:22px;border:1px solid var(--line);border-radius:50%}
+.shake{animation:sh .35s}@keyframes sh{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+#app{display:flex;height:100%}
+#side{width:var(--sw,320px);min-width:200px;border-right:1px solid var(--line);display:flex;flex-direction:column;flex-shrink:0;position:relative}
+.bar{height:58px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 12px;gap:6px;flex-shrink:0}
+.bar .t{flex:1;text-align:center;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sbox{position:relative;border-bottom:1px solid var(--line)}#sbox svg{position:absolute;left:16px;top:50%;transform:translateY(-50%);pointer-events:none}
+#q{width:100%;border:0;padding:14px 16px 14px 48px;font:inherit;outline-offset:-2px}
+.n .ni{width:20px;height:20px;display:block;margin:2px 0}
+#tagic{padding:4px;flex-shrink:0}#tagic svg{width:20px;height:20px}
+#brand{display:none;margin-left:10px;font-weight:600;font-size:17px;letter-spacing:.5px;color:var(--mute);user-select:none}body.big #brand{display:block}
+#list{overflow-y:auto;flex:1}
+.n{padding:12px 16px 12px 28px;cursor:pointer;position:relative}
+.n:hover{background:var(--hov)}.n.sel{background:var(--sel)}
+.n b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.n span{display:block;color:var(--mute);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:21px}
+.n .pin{position:absolute;left:6px;top:14px;width:14px;height:14px;stroke:var(--acc)}
+.empty{padding:24px 16px;color:var(--mute)}
+#drawer{position:absolute;left:0;top:58px;bottom:0;width:100%;background:var(--bg);z-index:3;overflow-y:auto;padding:8px 0}
+#drawer .m{width:100%;justify-content:space-between;padding:10px 20px;border-radius:0}
+#drawer .m.on{background:var(--sel)}#drawer .m small{color:var(--mute)}
+#main{flex:1;display:flex;flex-direction:column;min-width:0}
+.sp{flex:1}
+#tagbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 10%;border-bottom:1px solid var(--line);min-height:44px}
+.chip{background:var(--chip);color:var(--acc);border-radius:14px;padding:2px 6px 2px 12px;font-size:14px;display:flex;align-items:center;gap:2px}
+.chip button{padding:0 6px;font-size:13px;border-radius:50%;color:var(--acc)}
+#tin{border:0;outline:0;font:14px inherit;flex:1;min-width:120px;padding:4px 0}
+#ed{flex:1;border:0;resize:none;padding:24px 10%;font:var(--fs,17px)/1.9 "Microsoft YaHei UI",sans-serif;outline:0;tab-size:4}
+#none{flex:1;display:flex;align-items:center;justify-content:center;color:var(--mute)}
+body.nosb #side,body.nosb #split{display:none}
+#split{width:6px;margin:0 -3px;cursor:col-resize;flex-shrink:0;z-index:4;touch-action:none}#split:hover,#split.on{background:var(--acc);opacity:.45}
+#modes{display:flex;gap:4px;padding:8px 12px;border-bottom:1px solid var(--line)}#modes button{flex:1;padding:6px;font-size:15px}#modes button.on{background:var(--sel);color:var(--fg);font-weight:600}
+.pop{position:fixed;right:16px;top:62px;background:var(--bg);border-radius:12px;box-shadow:0 4px 24px var(--sh);border:1px solid var(--line);min-width:300px;z-index:5;overflow:hidden}
+.pop h3{margin:0;padding:16px;font-size:17px;color:var(--mute);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.pop .r{display:flex;justify-content:space-between;padding:8px 16px;color:var(--mute);gap:24px}.pop .r em{font-style:normal;color:var(--fg)}
+.pop .m{display:block;width:100%;text-align:left;padding:10px 16px;border-radius:0}
+.pop .m.d{color:#d9534f}.pop hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:8px 16px;border-radius:8px;z-index:20}
+</style></head><body>
+<div id="lock"><h1 id="lt">Inkling</h1><p id="lm"></p><div class="dots" id="dots"><i></i><i></i><i></i><i></i></div><div class="pad" id="pad"></div></div>
+
+<div id="app" class="hide">
+  <aside id="side">
+    <div class="bar">
+      <button id="bMenu" title="标签与筛选" aria-label="标签与筛选"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <div class="t" id="ttl">全部笔记</div>
+      <button id="bNew" title="新建笔记 (Ctrl+N)" aria-label="新建笔记"><svg viewBox="0 0 24 24"><path d="M11 4H5a1 1 0 00-1 1v14a1 1 0 001 1h14a1 1 0 001-1v-6"/><path d="M18.5 3.5l2 2L12 14l-3 1 1-3z"/></svg></button>
+    </div>
+    <div id="modes"><button data-m="note">笔记</button><button data-m="diary">日记</button></div>
+    <div id="sbox"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg><input id="q" aria-label="搜索全部笔记和标签" title="搜索 (Ctrl+F)"></div>
+    <div id="list"></div>
+    <div id="drawer" class="hide"></div>
+  </aside>
+  <div id="split" title="拖动调整宽度，双击还原"></div>
+  <section id="main">
+    <div class="bar">
+      <button id="bSide" title="显示/隐藏列表" aria-label="切换列表"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button>
+      <div class="sp"></div>
+      <button id="bChk" title="待办 (Ctrl+L)" aria-label="待办"><svg viewBox="0 0 24 24"><path d="M3 6l2 2 3-3M3 13l2 2 3-3M11 7h10M11 14h10M11 20h10M3 20h3"/></svg></button>
+      <button id="bInfo" title="文档信息" aria-label="信息"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></svg></button>
+      <button id="bMore" title="更多" aria-label="更多"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg></button>
+      <span id="brand">Inkling</span>
+    </div>
+    <div id="none">点击左上角的新建按钮开始写作</div>
+    <div id="tagbar" class="hide"><button id="tagic" title="添加标签，回车确认" aria-label="添加标签"><svg viewBox="0 0 24 24"><path d="M3 4h8l9 9-7 7-10-10z"/><circle cx="7.5" cy="8.5" r="1"/></svg></button><span id="chips" style="display:contents"></span><input id="tin" title="添加标签，回车确认" aria-label="添加标签"></div>
+    <textarea id="ed" class="hide" spellcheck="false" placeholder="开始写点什么…"></textarea>
+  </section>
+</div>
+<div id="pop" class="pop hide"></div>
+<script src="/js/neutralino.js"></script>
+<script>
+const $=s=>document.querySelector(s), p2=x=>String(x).padStart(2,'0');
+const native=!!window.NL_PORT;
+let DB={mode:'note',sideW:320,fs:17,city:'',pin:null,theme:'auto',backup:true,notes:[],lastMod:0,lastBackup:0};
+let dataDir,bakDir,saveT;
+const FS=()=>Neutralino.filesystem;
+
+async function loadDB(){
+  if(native){
+    Neutralino.init();
+    const dd=await Neutralino.os.getPath('data');dataDir=dd+'/Inkling';
+    bakDir=(await Neutralino.os.getPath('documents'))+'/Inkling-Backup';
+    for(const d of [dataDir,bakDir]) try{await FS().createDirectory(d)}catch{}
+    try{Object.assign(DB,JSON.parse(await FS().readFile(dataDir+'/db.json')))}catch{try{Object.assign(DB,JSON.parse(await FS().readFile(dd+'/CodewenNotes/db.json')));await flush()}catch{}}
+    Neutralino.events.on('windowClose',async()=>{await flush();await backup(true);Neutralino.app.exit()});
+  }else try{Object.assign(DB,JSON.parse(localStorage.getItem('db')||'{}'))}catch{}
+}
+function persist(){clearTimeout(saveT);saveT=setTimeout(flush,400)}
+async function flush(){clearTimeout(saveT);const s=JSON.stringify(DB);
+  try{native?await FS().writeFile(dataDir+'/db.json',s):localStorage.setItem('db',s)}catch(e){toast('保存失败：'+(e.message||e))}}
+function touch(n){n.mod=Date.now();DB.lastMod=n.mod;persist()}
+function toast(t){const e=document.createElement('div');e.id='toast';e.textContent=t;document.body.append(e);setTimeout(()=>e.remove(),2200)}
+async function hash(p){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('codewen:'+p));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+
+/* 主题 */
+const mq=matchMedia('(prefers-color-scheme: dark)');
+function theme(){document.documentElement.dataset.theme=(DB.theme==='dark'||(DB.theme==='auto'&&mq.matches))?'dark':'light'}
+mq.onchange=theme;
+
+/* 备份 */
+const stamp=()=>{const d=new Date();return `${d.getFullYear()}${p2(d.getMonth()+1)}${p2(d.getDate())}-${p2(d.getHours())}${p2(d.getMinutes())}${p2(d.getSeconds())}`};
+async function backup(auto){
+  if(!native){if(!auto)toast('浏览器模式不支持备份');return}
+  if(auto&&(!DB.backup||DB.lastBackup>=DB.lastMod))return;
+  try{
+    await FS().writeFile(`${bakDir}/notes-${stamp()}.json`,JSON.stringify({notes:DB.notes}));
+    DB.lastBackup=Date.now();await flush();
+    const fs=(await FS().readDirectory(bakDir)).map(f=>f.entry).filter(f=>/^notes-.*\.json$/.test(f)).sort();
+    for(const f of fs.slice(0,-20))await FS().remove(bakDir+'/'+f);
+    if(!auto)toast('已备份到 文档\\Inkling-Backup');
+  }catch(e){toast('备份失败：'+(e.message||e))}
+}
+async function restore(){
+  if(!native)return;
+  try{
+    const r=await Neutralino.os.showOpenDialog('选择备份文件',{defaultPath:bakDir,filters:[{name:'备份文件',extensions:['json']}]});
+    if(!r||!r.length)return;
+    const nb=JSON.parse(await FS().readFile(r[0])).notes;let c=0;
+    for(const n of nb){const o=DB.notes.find(x=>x.id===n.id);if(!o){DB.notes.push(n);c++}else if(n.mod>o.mod){Object.assign(o,n);c++}}
+    DB.lastMod=Date.now();persist();render();toast(`已导入 ${c} 篇笔记`);
+  }catch(e){toast('导入失败：备份文件无效')}
+}
+function openBak(){if(native)Neutralino.os.execCommand(`explorer "${bakDir.replace(/\//g,'\\')}"`)}
+
+/* PIN 锁 */
+let buf='',mode='verify',first='',onOk=null;
+['1','2','3','4','5','6','7','8','9','','0','⌫'].forEach(k=>{const b=document.createElement('button');b.textContent=k;if(!k)b.style.visibility='hidden';b.onclick=()=>key(k);$('#pad').append(b)});
+const dots=()=>[...$('#dots').children].forEach((d,i)=>d.classList.toggle('on',i<buf.length));
+const msg=t=>$('#lm').textContent=t;
+function startLock(m,cb){mode=m;onOk=cb;buf='';first='';dots();$('#lock').classList.remove('hide');closePop();
+  $('#lt').textContent=m==='verify'?'Inkling':'设置4位数PIN码';msg(m==='verify'?'请输入PIN码':'请输入新的PIN码')}
+async function key(k){
+  if(k==='⌫')buf=buf.slice(0,-1);else if(/^\d$/.test(k)&&buf.length<4)buf+=k;
+  dots();if(buf.length<4)return;const v=buf;buf='';
+  if(mode==='verify'){await hash(v)===DB.pin?done():fail('PIN码错误，请重试')}
+  else if(mode==='set'){first=v;mode='confirm';msg('请再输入一次确认');setTimeout(dots,120)}
+  else if(v===first){DB.pin=await hash(v);await flush();toast('PIN码已设置');done()}
+  else{mode='set';first='';fail('两次输入不一致，请重新设置')}
+}
+function fail(t){const d=$('#dots');d.classList.add('shake');msg(t);setTimeout(()=>{d.classList.remove('shake');dots()},350)}
+function done(){$('#lock').classList.add('hide');$('#app').classList.remove('hide');onOk&&onOk()}
+const locked=()=>!$('#lock').classList.contains('hide');
+
+/* 笔记与标签 */
+let cur=null,filter='',tagF=null;
+const title=n=>(n.text.split('\n').find(l=>l.trim())||'').replace(/^#+\s*/,'')||'';
+const prev=n=>n.text.split('\n').filter(l=>l.trim())[1]||'';
+const get=()=>DB.notes.find(x=>x.id===cur);
+const allTags=()=>{const m={};DB.notes.filter(n=>(n.type||'note')===DB.mode).forEach(n=>(n.tags||[]).forEach(t=>m[t]=(m[t]||0)+1));return Object.entries(m).sort((a,b)=>a[0].localeCompare(b[0],'zh'))};
+function render(){
+  $('#ttl').textContent=tagF?'# '+tagF:DB.mode==='diary'?'全部日记':'全部笔记';
+  const l=$('#list');l.innerHTML='';const q=filter.toLowerCase();
+  const f=DB.notes.filter(n=>(n.type||'note')===DB.mode&&(!tagF||(n.tags||[]).includes(tagF))&&(!q||n.text.toLowerCase().includes(q)||(n.tags||[]).some(t=>t.toLowerCase().includes(q))))
+    .sort((a,b)=>(!!b.pin-!!a.pin)||(DB.mode==='diary'?(b.date||'').localeCompare(a.date||''):b.mod-a.mod));
+  if(!f.length)l.innerHTML='<div class="empty">'+(filter||tagF?'没有找到匹配的笔记':'还没有笔记')+'</div>';
+  f.forEach(n=>{const d=document.createElement('div');d.className='n'+(n.id===cur?' sel':'');
+    d.innerHTML=(n.pin?'<svg class="pin" viewBox="0 0 24 24"><path d="M9 4h6l-1 6 3 3H7l3-3zM12 13v8"/></svg>':'')+'<b></b><span></span>';
+    const tb=d.querySelector('b');if(n.text.trim())tb.textContent=title(n);else tb.innerHTML='<svg class="ni" viewBox="0 0 24 24"><path d="M11 4H5a1 1 0 00-1 1v14a1 1 0 001 1h14a1 1 0 001-1v-6"/><path d="M18.5 3.5l2 2L12 14l-3 1 1-3z"/></svg>';d.querySelector('span').textContent=(n.tags||[]).length?'#'+n.tags.join(' #'):prev(n);
+    d.onclick=()=>open(n.id);l.append(d)});
+}
+function renderTags(){
+  const n=get(),c=$('#chips');c.innerHTML='';
+  (n.tags||[]).forEach(t=>{const e=document.createElement('span');e.className='chip';e.textContent=t;
+    const x=document.createElement('button');x.textContent='✕';x.setAttribute('aria-label','删除标签 '+t);
+    x.onclick=()=>{n.tags=n.tags.filter(y=>y!==t);touch(n);renderTags();render()};e.append(x);c.append(e)});
+}
+function open(id){cur=id;const n=get();$('#ed').value=n.text;
+  ['#ed','#tagbar'].forEach(s=>$(s).classList.remove('hide'));$('#none').classList.add('hide');
+  renderTags();render();closePop()}
+function newNote(){const n={id:Date.now(),text:'',created:Date.now(),mod:Date.now(),pin:false,tags:tagF?[tagF]:[]};
+  DB.notes.push(n);DB.lastMod=n.mod;persist();filter='';$('#q').value='';open(n.id);$('#ed').focus()}
+function closeNote(){cur=null;['#ed','#tagbar'].forEach(s=>$(s).classList.add('hide'));$('#none').classList.remove('hide')}
+$('#bNew').onclick=()=>DB.mode==='diary'?openToday():newNote();
+$('#ed').oninput=e=>{const n=get();n.text=e.target.value;touch(n);render()};
+$('#q').oninput=e=>{filter=e.target.value;render()};
+$('#bSide').onclick=()=>document.body.classList.toggle('nosb');
+$('#tin').onkeydown=e=>{const n=get(),v=e.target;
+  if((e.key==='Enter'||e.key===','||e.key==='，')&&v.value.trim()){e.preventDefault();
+    const t=v.value.trim().replace(/[\s#,，]+/g,'-').replace(/^-+|-+$/g,'');
+    n.tags=n.tags||[];if(t&&!n.tags.includes(t)){n.tags.push(t);touch(n);renderTags();render()}v.value=''}
+  else if(e.key==='Backspace'&&!v.value&&n.tags&&n.tags.length){n.tags.pop();touch(n);renderTags();render()}};
+function insertChk(){const t=$('#ed');if(t.classList.contains('hide'))return;
+  const s=t.value,ls=s.lastIndexOf('\n',t.selectionStart-1)+1,has=s[ls]==='☐'||s[ls]==='☑';
+  t.setRangeText(has?'':'☐ ',ls,has?ls+2:ls,'end');t.dispatchEvent(new Event('input'))}
+$('#bChk').onclick=insertChk;
+$('#ed').ondblclick=()=>{const t=$('#ed'),s=t.value,ls=s.lastIndexOf('\n',t.selectionStart-1)+1;
+  if(s[ls]==='☐'||s[ls]==='☑'){t.setRangeText(s[ls]==='☐'?'☑':'☐',ls,ls+1,'preserve');t.dispatchEvent(new Event('input'))}};
+
+/* 标签抽屉 */
+$('#bMenu').onclick=()=>{const d=$('#drawer');if(!d.classList.toggle('hide')){
+  d.innerHTML='';const add=(txt,cnt,on,fn)=>{const b=document.createElement('button');b.className='m'+(on?' on':'');
+    b.innerHTML='<span></span><small></small>';b.firstChild.textContent=txt;b.lastChild.textContent=cnt;b.onclick=fn;d.append(b)};
+  add(DB.mode==='diary'?'全部日记':'全部笔记',DB.notes.filter(n=>(n.type||'note')===DB.mode).length,!tagF,()=>{tagF=null;d.classList.add('hide');render()});
+  allTags().forEach(([t,c])=>add('# '+t,c,tagF===t,()=>{tagF=t;d.classList.add('hide');render()}));
+  if(!allTags().length){const e=document.createElement('div');e.className='empty';e.textContent='还没有标签。在笔记上方的输入框里添加。';d.append(e)}
+}};
+
+/* 弹层 */
+const fmt=t=>{const d=new Date(t);return `${d.getFullYear()}年${p2(d.getMonth()+1)}月${p2(d.getDate())}日 ${p2(d.getHours())}:${p2(d.getMinutes())}`};
+function count(s){const re=/[\u3400-\u9fff\uf900-\ufaff\u3040-\u30ff]/g;
+  return{words:(s.match(re)||[]).length+(s.replace(re,' ').match(/[A-Za-z0-9_'’-]+/g)||[]).length,chars:s.replace(/\s/g,'').length}}
+const closePop=()=>$('#pop').classList.add('hide');
+function pop(h){$('#pop').innerHTML=h;$('#pop').classList.remove('hide')}
+$('#bInfo').onclick=()=>{const n=get();if(!n)return;const c=count(n.text);
+  pop(`<h3>文档信息<button data-a="x" aria-label="关闭">✕</button></h3><div class="r">最后备份<em>${DB.lastBackup?fmt(DB.lastBackup):'尚未备份'}</em></div>
+  <div class="r">修改时间<em>${fmt(n.mod)}</em></div><div class="r">创建时间<em>${fmt(n.created)}</em></div>
+  <div class="r">字数<em>${c.words}</em></div><div class="r">字符数<em>${c.chars}</em></div><div style="height:8px"></div>`)};
+const themeName={auto:'跟随系统',light:'浅色',dark:'深色'};
+function more(){const n=get();
+  pop((n?`<button class="m" data-a="pin">${n.pin?'取消置顶':'置顶笔记'}</button><button class="m" data-a="exp">导出为 .txt</button><hr>`:'')+
+  `<button class="m" data-a="city">天气城市：${DB.city||'自动定位'}</button>
+  ${n&&n.type==='diary'?'<button class="m" data-a="wx">重新获取天气</button>':''}
+  <button class="m" data-a="theme">外观：${themeName[DB.theme]}</button>
+  <button class="m" data-a="bk">自动备份：${DB.backup?'开':'关'}</button>
+  <button class="m" data-a="now">立即备份</button><button class="m" data-a="open">打开备份文件夹</button><button class="m" data-a="rest">导入备份…</button><hr>
+  <button class="m" data-a="lock">立即锁定</button><button class="m" data-a="pw">修改PIN码</button>`+
+  (n?`<hr><button class="m d" data-a="del">删除笔记</button>`:''))}
+$('#bMore').onclick=more;
+$('#pop').onclick=e=>{const a=e.target.dataset.a;if(!a)return;const n=get();
+  if(a==='x')closePop();
+  else if(a==='city'){pop('<h3>天气城市<button data-a="x" aria-label="关闭">✕</button></h3><div style="padding:12px 16px"><input id="cin" value="'+DB.city.replace(/"/g,'')+'" placeholder="如：东京；留空则自动定位" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:6px"></div><button class="m" data-a="csave">保存</button>');$('#cin').focus()}
+  else if(a==='csave'){DB.city=$('#cin').value.trim();persist();closePop();toast(DB.city?'天气城市已设为 '+DB.city:'将按网络自动定位')}
+  else if(a==='wx'){closePop();fillWeather(n)}
+  else if(a==='theme'){DB.theme={auto:'light',light:'dark',dark:'auto'}[DB.theme];theme();persist();more()}
+  else if(a==='bk'){DB.backup=!DB.backup;persist();more()}
+  else if(a==='now'){closePop();backup(false)}
+  else if(a==='open'){closePop();openBak()}
+  else if(a==='rest'){closePop();restore()}
+  else if(a==='lock')startLock('verify',()=>{})
+  else if(a==='pw')startLock('set',()=>{})
+  else if(a==='pin'){n.pin=!n.pin;touch(n);render();closePop()}
+  else if(a==='exp'){const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([n.text],{type:'text/plain;charset=utf-8'}));
+    l.download=(title(n)||'note').slice(0,40).replace(/[\\/:*?"<>|]/g,'_')+'.txt';l.click();closePop()}
+  else if(a==='del'&&confirm('确定删除这篇笔记吗？此操作无法撤销。')){DB.notes=DB.notes.filter(x=>x.id!==cur);DB.lastMod=Date.now();persist();closeNote();render();closePop()}};
+document.addEventListener('keydown',e=>{
+  if(locked()){if(e.key==='Backspace')key('⌫');else if(/^\d$/.test(e.key))key(e.key);return}
+  if(e.ctrlKey&&e.key==='n'){e.preventDefault();$('#bNew').click()}
+  if(e.ctrlKey&&e.key==='0'){DB.fs=17;setFS();persist()}
+  if(e.ctrlKey&&e.key==='l'){e.preventDefault();insertChk()}
+  if(e.ctrlKey&&e.key==='f'){e.preventDefault();$('#q').focus()}
+  if(e.key==='Escape'){closePop();$('#drawer').classList.add('hide')}});
+
+
+/* 日记模式 */
+const WD=['日','一','二','三','四','五','六'];
+const ymd=d=>`${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+const WMO=c=>c===0?['晴','☀️']:c<=2?['多云','⛅']:c===3?['阴','☁️']:c<=48?['雾','🌫️']:c<=57?['毛毛雨','🌦️']:c<=67?['雨','🌧️']:c<=77?['雪','❄️']:c<=82?['阵雨','🌦️']:c<=86?['阵雪','🌨️']:['雷暴','⛈️'];
+async function getWeather(){
+  let lat,lon,name;
+  if(DB.city){const r=await(await fetch('https://geocoding-api.open-meteo.com/v1/search?count=1&language=zh&name='+encodeURIComponent(DB.city))).json();
+    const x=r.results&&r.results[0];if(!x)throw new Error('找不到城市');lat=x.latitude;lon=x.longitude;name=x.name}
+  else{const g=await(await fetch('https://get.geojs.io/v1/ip/geo.json')).json();lat=+g.latitude;lon=+g.longitude;name=g.city||''}
+  const w=await(await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1`)).json();
+  const [t,e]=WMO(w.current.weather_code);
+  return `${e} ${t} ${Math.round(w.daily.temperature_2m_min[0])}°~${Math.round(w.daily.temperature_2m_max[0])}°C`+(name?` · ${name}`:'');
+}
+async function fillWeather(n){
+  let line;try{line='天气：'+await getWeather()}catch(e){line='天气：未能获取（请检查网络，或在「…」里重新获取）'}
+  const lines=n.text.split('\n');const i=lines.findIndex((l,k)=>k<4&&l.startsWith('天气：'));
+  if(i<0)lines.splice(1,0,line);else lines[i]=line;
+  const old=n.text;n.text=lines.join('\n');touch(n);
+  if(cur===n.id){const t=$('#ed'),pos=t.selectionStart,at=old.indexOf('\n')+1;t.value=n.text;
+    const np=pos>at?pos+(n.text.length-old.length):pos;t.setSelectionRange(np,np)}
+  render();
+}
+function openToday(){
+  const d=new Date(),k=ymd(d);let n=DB.notes.find(x=>x.type==='diary'&&x.date===k);
+  if(!n){n={id:Date.now(),type:'diary',date:k,created:Date.now(),mod:Date.now(),pin:false,tags:[],
+    text:`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 星期${WD[d.getDay()]}\n天气：获取中…\n\n`};
+    DB.notes.push(n);DB.lastMod=n.mod;persist();fillWeather(n)}
+  filter='';$('#q').value='';tagF=null;open(n.id);const t=$('#ed');t.focus();t.setSelectionRange(t.value.length,t.value.length);
+}
+function setMode(m,boot){
+  DB.mode=m;persist();filter='';$('#q').value='';tagF=null;$('#drawer').classList.add('hide');
+  document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
+  $('#bNew').title=m==='diary'?'打开今天的日记 (Ctrl+N)':'新建笔记 (Ctrl+N)';
+  closeNote();render();
+  if(m==='diary')openToday();
+  else{const l=DB.notes.filter(n=>(n.type||'note')==='note').sort((a,b)=>b.mod-a.mod)[0];if(l)open(l.id)}
+}
+document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+
+/* 分栏拖动与字号 */
+const setSW=w=>document.documentElement.style.setProperty('--sw',w+'px');
+const setFS=()=>document.documentElement.style.setProperty('--fs',DB.fs+'px');
+const sp=$('#split');
+sp.onpointerdown=e=>{sp.setPointerCapture(e.pointerId);sp.classList.add('on')};
+sp.onpointermove=e=>{if(sp.hasPointerCapture(e.pointerId)){DB.sideW=Math.round(Math.max(200,Math.min(innerWidth-360,e.clientX)));setSW(DB.sideW)}};
+sp.onpointerup=()=>{sp.classList.remove('on');persist()};
+sp.ondblclick=()=>{DB.sideW=320;setSW(320);persist()};
+$('#ed').addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();DB.fs=Math.max(12,Math.min(32,DB.fs+(e.deltaY<0?1:-1)));setFS();persist()},{passive:false});
+
+/* 标签图标、全屏显示软件名 */
+$('#tagic').onclick=()=>$('#tin').focus();
+let bt;async function checkBig(){if(!native)return;try{document.body.classList.toggle('big',(await Neutralino.window.isFullScreen())||(await Neutralino.window.isMaximized()))}catch{}}
+addEventListener('resize',()=>{clearTimeout(bt);bt=setTimeout(checkBig,150)});
+document.addEventListener('keydown',async e=>{if(e.key==='F11'&&native){e.preventDefault();
+  try{(await Neutralino.window.isFullScreen())?await Neutralino.window.exitFullScreen():await Neutralino.window.setFullScreen()}catch{}}});
+
+/* 启动 */
+(async()=>{
+  await loadDB();theme();checkBig();setSW(DB.sideW);setFS();render();
+  const after=()=>{backup(true);setMode(DB.mode,true)};
+  startLock(DB.pin?'verify':'set',after);
+  setInterval(()=>{if(!locked())backup(true)},5*60*1000);
+})();
+</script></body></html>
